@@ -1,7 +1,6 @@
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, InitializeAccount, Token, TokenAccount};
-use anchor_spl::token::Transfer;
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use anchor_lang::solana_program::pubkey;
 // This is your program's public key and it will update
 // automatically when you build the project.
@@ -67,7 +66,7 @@ mod hello_anchor {
         let cpi_accounts = Transfer{
             from: ctx.accounts.vault_token_acc.to_account_info(),
             to:ctx.accounts.merchant_token_account.to_account_info(),
-            authority:ctx.accounts.vault_info.to_account_info()
+            authority:ctx.accounts.vault_token_acc.to_account_info()
         };
         token::transfer (CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), 
         cpi_accounts, 
@@ -79,7 +78,7 @@ mod hello_anchor {
         let cpi_accounts = Transfer{
         from:ctx.accounts.vault_token_acc.to_account_info(),
         to:ctx.accounts.platform_token_account.to_account_info(),
-        authority:ctx.accounts.vault_info.to_account_info()
+        authority:ctx.accounts.vault_token_acc.to_account_info()
     };
 
     token::transfer(

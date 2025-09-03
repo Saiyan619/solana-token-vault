@@ -1,33 +1,43 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
+import '@solana/wallet-adapter-react-ui/styles.css';
+import { EscrowVaultApp } from './EscrowVaultApp';
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
+    const { publicKey, connected, wallet } = useWallet();  return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+        hi this is my first dapp working with solana so escited
+          <div className="mb-6 space-y-4">
+                    <WalletMultiButton className="w-full" />
+                    {connected && <WalletDisconnectButton className="w-full" />}
+                </div>
+
+                {/* Connection Status */}
+                <div className="mb-6">
+                    <p className="mb-2">
+                        <strong>Status:</strong> {connected ? 'Connected' : 'Disconnected'}
+                    </p>
+                    
+                    {wallet && (
+                        <p className="mb-2">
+                            <strong>Wallet:</strong> {wallet.adapter.name}
+                        </p>
+                    )}
+                    
+                    {publicKey && (
+                        <div className="mb-2">
+                            <strong>Address:</strong>
+                            <p className="text-sm font-mono bg-gray-700 p-2 rounded mt-1 break-all">
+                                {publicKey.toString()}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                <EscrowVaultApp />
+     </div>
     </>
   )
 }
