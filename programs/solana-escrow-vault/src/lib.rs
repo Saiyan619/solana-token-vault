@@ -1,4 +1,3 @@
-
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use anchor_lang::solana_program::pubkey;
@@ -9,24 +8,35 @@ declare_id!("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 const PLATFORM_WALLET: Pubkey = pubkey!("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 
 #[program]
-mod hello_anchor {
+mod solana_escrow_vault  {
     use super::*;
     pub fn initialize(ctx: Context<Initialize>, merchant:Pubkey,
     merchant_fee:u64,
     platform_fee:u64,
-    amount:u64
     ) -> Result<()> {
         let vault_info=&mut ctx.accounts.vault_info;
         vault_info.merchant=merchant;
-        vault_info.amount=amount;
+        vault_info.amount=0;
         vault_info.merchant_fee=merchant_fee;
         vault_info.platform_fee=platform_fee;
         vault_info.mint=ctx.accounts.mint.key();
         vault_info.vault_token_account=ctx.accounts.vault_token_acc.key();
         vault_info.info_bump = ctx.bumps.vault_info;
         vault_info.vault_bump = ctx.bumps.vault_token_acc;
-
-        Ok(())
+  msg!("==========================================");
+    msg!("🚀 ESCROW VAULT INITIALIZED");
+    msg!("==========================================");
+    msg!("Merchant: {}", merchant);
+    msg!("Mint: {}", ctx.accounts.mint.key());
+    msg!("Vault Token Account: {}", ctx.accounts.vault_token_acc.key());
+    msg!("Initial Amount: {}", vault_info.amount);
+    msg!("Merchant Fee: {} basis points", merchant_fee);
+    msg!("Platform Fee: {} basis points", platform_fee);
+    msg!("Vault Bump: {}", ctx.bumps.vault_token_acc);
+    msg!("Info Bump: {}", ctx.bumps.vault_info);
+    msg!("Vault Token Balance: {} (should be 0 initially)", ctx.accounts.vault_token_acc.amount);
+    msg!("==========================================");      
+      Ok(())
     }
 
     pub fn deposit(ctx:Context<Deposit>, amount:u64)-> Result<()>{
@@ -57,7 +67,7 @@ mod hello_anchor {
     let bump = vault_info.vault_bump;
     
     let seeds = &[
-        b"vault".as_ref(),
+        b"vault_info".as_ref(),
         signer_key.as_ref(),
         mint_key.as_ref(),  
         &[bump]             
@@ -134,8 +144,8 @@ pub struct Deposit<'info>{
 
     #[account(mut,
     constraint = user_token_account.owner == signer.key() @ ErrorCode::WrongUsertokenAccount,
-    constraint = user_token_account.mint== mint.key()@ ErrorCode::WrongUsertoken,
-    constraint = vault_token_acc.mint == mint.key()@ ErrorCode::WrongUsertoken )]
+    constraint = user_token_account.mint== mint.key()@ ErrorCode::IncorrectTokenType,
+    constraint = vault_token_acc.mint == mint.key()@ ErrorCode::IncorrectTokenType )]
     user_token_account:Account<'info, TokenAccount>,
 
     #[account(mut)]
@@ -168,7 +178,7 @@ pub struct Settlement<'info>{
 
     #[account(mut,
         constraint=platform_token_account.owner==PLATFORM_WALLET @ ErrorCode::WrongPlatWallet,
-        constraint = platform_token_account.mint == mint.key()
+        constraint = platform_token_account.mint == mint.key() @ ErrorCode::WrongPlatWalletToken
     )]
     platform_token_account:Account<'info, TokenAccount>,
 
@@ -207,14 +217,16 @@ pub struct VaultInfo{
 pub enum ErrorCode {
     #[msg("Wrong user token account!!")]
     WrongUsertokenAccount,
-    #[msg("Wrong token!!")]
-    WrongUsertoken,
+    #[msg("Incorrect token type provided for this vault")]
+    IncorrectTokenType,
     #[msg("Insufficient balance!!")]
     Insufficientbalance,
     #[msg("wrong merchant Account!!")]
     WrongMerchantAcc,
     #[msg("wrong platform wallet")]
     WrongPlatWallet,
+    #[msg("wrong platform token")]
+    WrongPlatWalletToken,
     #[msg("wrong merchant token")]
     WrongMerchantToken,
     #[msg("unauthorized settler")]
@@ -222,4 +234,3 @@ pub enum ErrorCode {
     #[msg("Insufficient vault balance")]
     InsufficientVaultBalance,
 }
-
