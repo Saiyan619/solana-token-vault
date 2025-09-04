@@ -18,8 +18,6 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// import { StatCard } from '@/components/StatCard';
-// import { TransactionRow } from '@/components/TransactionRow';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,33 +100,6 @@ export const EscrowVaultApp = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Total Vaults" 
-            value="12" 
-            icon={Database} 
-            iconColor="purple"
-          />
-          <StatCard 
-            title="Total Volume" 
-            value="1,234.5 SOL" 
-            icon={Coins} 
-            iconColor="green"
-          />
-          <StatCard 
-            title="Active Escrows" 
-            value="8" 
-            icon={Handshake} 
-            iconColor="orange"
-          />
-          <StatCard 
-            title="Success Rate" 
-            value="98.5%" 
-            icon={Check} 
-            iconColor="blue"
-          />
-        </div> */}
 
         {/* Main Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

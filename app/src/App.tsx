@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { EscrowVaultApp } from './EscrowVaultApp';
