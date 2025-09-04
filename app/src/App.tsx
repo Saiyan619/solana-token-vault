@@ -14,6 +14,7 @@ function App() {
                     {connected && <WalletDisconnectButton className="w-full" />}
                 </div>
 
+                {/* imposter */}
                 {/* Connection Status */}
                 <div className="mb-6">
                     <p className="mb-2">
