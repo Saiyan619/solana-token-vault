@@ -26,17 +26,16 @@ const CreateVault = () => {
     const wallet = useAnchorWallet();
     const [merchantAddress, setMerchantAddress] = useState('');
     const [merchantFee, setMerchantFee] = useState('');
-    const [platformFee, setPlatformFee] = useState('');
+    const [clientAddress, setClientAddress] = useState('');
     const [selectedToken, setSelectedToken] = useState('USDC');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState<string>('');
 
     const InitializeVault = async (
-        mintAddress: string, 
-        merchantFee: number, 
-        platformFee: number, 
-        merchantAddress?: string
+        mintAddress: string,
+        targetUserAddress: string,
+        // merchantAddress:string
     ) => {
         if (!wallet) {
             throw new Error("Wallet not connected");
@@ -52,28 +51,29 @@ const CreateVault = () => {
         try {
             console.log("Wallet public key:", wallet.publicKey.toBase58());
             console.log("Mint address:", mintAddress);
-            console.log("Merchant fee (basis points):", merchantFee);
-            console.log("Platform fee (basis points):", platformFee);
-            console.log("Merchant address:", merchantAddress);
+            console.log("Client address:", targetUserAddress);
+            console.log("Merchant address:", wallet.publicKey.toBase58());
 
             // Create provider with coral-xyz/anchor
             const provider = new AnchorProvider(connection, wallet, {
                 commitment: "confirmed"
             });
 
-
+            //Create program instance
           const program = new Program(idl as any, provider);
           
             const mintPubkey = new PublicKey(mintAddress);
             const merchantPubkey = merchantAddress 
                 ? new PublicKey(merchantAddress)
                 : wallet.publicKey;
+            const userPubkey = new PublicKey(targetUserAddress);
 
             // Derive PDAs using sync method (more efficient in newer versions)
             const [vaultInfoPDA] = PublicKey.findProgramAddressSync(
                 [
                     Buffer.from("vault_info"),
                     wallet.publicKey.toBuffer(),
+                    userPubkey.toBuffer(),
                     mintPubkey.toBuffer()
                 ],
                 PROGRAM_ID
@@ -83,6 +83,7 @@ const CreateVault = () => {
                 [
                     Buffer.from("vault"),
                     wallet.publicKey.toBuffer(),
+                    userPubkey.toBuffer(),
                     mintPubkey.toBuffer()
                 ],
                 PROGRAM_ID
@@ -92,20 +93,16 @@ const CreateVault = () => {
             console.log('Vault Info PDA:', vaultInfoPDA.toBase58());
             console.log('Vault Token PDA:', vaultTokenPDA.toBase58());
 
-            // Fixed account names to match your Rust struct
-            // Your Rust struct uses snake_case, but the client expects camelCase
-            const tx = await program.methods.initialize(
-                merchantPubkey,
-                new BN(merchantFee),
-                new BN(platformFee)
-            ).accounts({
+            
+            // Important reminder to myself!!: Rust struct uses snake_case, but the client expects camelCase
+            const tx = await program.methods.initialize().accounts({
                 // These account names must match your Rust Initialize struct
                 vaultInfo: vaultInfoPDA,        // matches vault_info in Rust
                 vaultTokenAcc: vaultTokenPDA,   // matches vault_token_acc in Rust
                 mint: mintPubkey,
+                targetAcc: userPubkey,
                 tokenProgram: TOKEN_PROGRAM_ID, // matches token_program in Rust
                 signer: wallet.publicKey,
-                rent: SYSVAR_RENT_PUBKEY,
                 systemProgram: SystemProgram.programId // matches system_program in Rust
             }).rpc();
 
@@ -135,14 +132,14 @@ const CreateVault = () => {
     };
 
     const handleCreateVault = async () => {
-        if (!merchantFee || !platformFee) {
-            setError('Please enter both merchant fee and platform fee');
-            return;
-        }
+        // if (!merchantFee || !platformFee) {
+        //     setError('Please enter both merchant fee and platform fee');
+        //     return;
+        // }
 
         // Convert percentage to basis points (multiply by 100)
-        const merchantFeeBasisPoints = Math.round(parseFloat(merchantFee) * 100);
-        const platformFeeBasisPoints = Math.round(parseFloat(platformFee) * 100);
+        // const merchantFeeBasisPoints = Math.round(parseFloat(merchantFee) * 100);
+        // const platformFeeBasisPoints = Math.round(parseFloat(platformFee) * 100);
 
         // Get the mint address based on selected token
         const mintAddress = DEVNET_TOKENS[selectedToken as keyof typeof DEVNET_TOKENS];
@@ -150,9 +147,7 @@ const CreateVault = () => {
         try {
             await InitializeVault(
                 mintAddress,
-                merchantFeeBasisPoints,
-                platformFeeBasisPoints,
-                merchantAddress || undefined
+                clientAddress,
             );
         } catch (error) {
             // Error is already handled in InitializeVault
@@ -172,18 +167,18 @@ const CreateVault = () => {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="merchant-address" className="text-foreground">
-                            Merchant Address (optional)
+                            Client Address (Compulsory)
                         </Label>
                         <Input
-                            id="merchant-address"
-                            placeholder="Leave empty to use your wallet address"
-                            value={merchantAddress}
-                            onChange={(e) => setMerchantAddress(e.target.value)}
+                            id="client-address"
+                            placeholder="0x563746478438hjnfvnuf8e8e7e...."
+                            value={clientAddress}
+                            onChange={(e) => setClientAddress(e.target.value)}
                             className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-purple"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="merchant-fee" className="text-foreground">
                                 Merchant Fee (%)
@@ -208,7 +203,7 @@ const CreateVault = () => {
                                 className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-purple"
                             />
                         </div>
-                    </div>
+                    </div> */}
 
                     <div className="space-y-2">
                         <Label className="text-foreground">Token Type</Label>
