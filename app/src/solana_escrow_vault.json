@@ -213,10 +213,6 @@
         {
           "name": "platform_fee",
           "type": "u64"
-        },
-        {
-          "name": "amount",
-          "type": "u64"
         }
       ]
     },
@@ -345,8 +341,8 @@
     },
     {
       "code": 6001,
-      "name": "WrongUsertoken",
-      "msg": "Wrong token!!"
+      "name": "IncorrectTokenType",
+      "msg": "Incorrect token type provided for this vault"
     },
     {
       "code": 6002,
@@ -365,16 +361,21 @@
     },
     {
       "code": 6005,
+      "name": "WrongPlatWalletToken",
+      "msg": "wrong platform token"
+    },
+    {
+      "code": 6006,
       "name": "WrongMerchantToken",
       "msg": "wrong merchant token"
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "Unauthorized",
       "msg": "unauthorized settler"
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "InsufficientVaultBalance",
       "msg": "Insufficient vault balance"
     }

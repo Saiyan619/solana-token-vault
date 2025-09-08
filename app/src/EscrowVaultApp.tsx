@@ -22,14 +22,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './components/ui/button';
+import CreateVault from './main-func-components/CreateVault';
+import DepositToken from './main-func-components/DepositToken';
+import SettleTokens from './main-func-components/SettleTokens';
 
 export const EscrowVaultApp = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
-  const [merchantAddress, setMerchantAddress] = useState('');
-  const [merchantFee, setMerchantFee] = useState('');
-  const [platformFee, setPlatformFee] = useState('');
-  const [selectedToken, setSelectedToken] = useState('SOL');
+
   const [loading, setLoading] = useState('');
 
   const handleConnect = () => {
@@ -103,148 +103,14 @@ export const EscrowVaultApp = () => {
 
         {/* Main Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Create Vault */}
-          <Card className="bg-gradient-card border-border shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <PlusCircle className="w-5 h-5 text-vault-purple" />
-                Create Escrow Vault
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="merchant-address" className="text-foreground">Merchant Address</Label>
-                <Input
-                  id="merchant-address"
-                  placeholder="Enter merchant wallet address"
-                  value={merchantAddress}
-                  onChange={(e) => setMerchantAddress(e.target.value)}
-                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-purple"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="merchant-fee" className="text-foreground">Merchant Fee (%)</Label>
-                  <Input
-                    id="merchant-fee"
-                    placeholder="5.0"
-                    value={merchantFee}
-                    onChange={(e) => setMerchantFee(e.target.value)}
-                    className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-purple"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="platform-fee" className="text-foreground">Platform Fee (%)</Label>
-                  <Input
-                    id="platform-fee"
-                    placeholder="1.0"
-                    value={platformFee}
-                    onChange={(e) => setPlatformFee(e.target.value)}
-                    className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-purple"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-foreground">Token Mint</Label>
-                <Select value={selectedToken} onValueChange={setSelectedToken}>
-                  <SelectTrigger className="bg-background/50 border-border text-foreground">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SOL">SOL</SelectItem>
-                    <SelectItem value="USDC">USDC</SelectItem>
-                    <SelectItem value="USDT">USDT</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button 
-                variant="default" 
-                className="w-full"
-                onClick={() => handleAction('create')}
-                disabled={loading === 'create'}
-              >
-                {loading === 'create' ? 'Creating...' : 'Create Vault'}
-              </Button>
-            </CardContent>
-          </Card>
-
+         <CreateVault />
           {/* Deposit/Settlement */}
           <div className="space-y-6">
             {/* Deposit Section */}
-            <Card className="bg-gradient-card border-border shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <ArrowDown className="w-5 h-5 text-vault-green" />
-                  Deposit Funds
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="deposit-amount" className="text-foreground">Amount</Label>
-                  <div className="relative">
-                    <Input
-                      id="deposit-amount"
-                      placeholder="0.00"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-green pr-16"
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                      SOL
-                    </div>
-                  </div>
-                </div>
-                <Button 
-                  variant="link" 
-                  className="w-full"
-                  onClick={() => handleAction('deposit')}
-                  disabled={loading === 'deposit'}
-                >
-                  {loading === 'deposit' ? 'Depositing...' : 'Deposit'}
-                </Button>
-              </CardContent>
-            </Card>
+           <DepositToken />
 
             {/* Settlement Section */}
-            <Card className="bg-gradient-card border-border shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Handshake className="w-5 h-5 text-vault-purple" />
-                  Settlement
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Vault Balance:</span>
-                    <span className="font-mono text-foreground">125.5 SOL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Merchant Fee (5%):</span>
-                    <span className="font-mono text-foreground">6.275 SOL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Platform Fee (1%):</span>
-                    <span className="font-mono text-foreground">1.255 SOL</span>
-                  </div>
-                  <div className="border-t border-border pt-2 flex justify-between font-semibold">
-                    <span className="text-foreground">Settlement Amount:</span>
-                    <span className="font-mono text-vault-green">117.97 SOL</span>
-                  </div>
-                </div>
-                <Button 
-                  variant="default" 
-                  className="w-full"
-                  onClick={() => handleAction('settle')}
-                  disabled={loading === 'settle'}
-                >
-                  {loading === 'settle' ? 'Settling...' : 'Execute Settlement'}
-                </Button>
-              </CardContent>
-            </Card>
+           <SettleTokens />
           </div>
         </div>
 
