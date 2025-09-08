@@ -281,6 +281,8 @@ pub struct Initialize<'info> {
     )]
     pub vault_token_acc: Account<'info, TokenAccount>,
 
+      /// CHECK: This is the target user account that will own the vault with the merchant. 
+    /// We validate its relationship through PDA derivation constraints.
     pub target_acc: AccountInfo<'info>,
 
     #[account(mut)]
@@ -290,8 +292,6 @@ pub struct Initialize<'info> {
 
     #[account(mut)]
     pub signer: Signer<'info>,
-
-    pub rent: Sysvar<'info, Rent>,
 
     pub system_program: Program<'info, System>,
 }
@@ -323,6 +323,8 @@ pub struct Deposit<'info> {
     )]
     vault_token_acc: Account<'info, TokenAccount>,
 
+    /// CHECK: Validated by constraint that ensures it matches vault_info.target_acc
+    /// and through PDA derivation seeds.
     target_acc: AccountInfo<'info>,
 
     #[account(
@@ -341,8 +343,6 @@ pub struct Deposit<'info> {
     pub token_program: Program<'info, Token>,
 
     pub system_program: Program<'info, System>,
-
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -371,7 +371,8 @@ pub struct Settlement<'info> {
         bump = vault_info.vault_bump
     )]
     vault_token_acc: Account<'info, TokenAccount>,
-
+ /// CHECK: Validated by constraint that ensures it matches vault_info.target_acc
+    /// and through PDA derivation seeds.
     target_acc: AccountInfo<'info>,
 
     #[account(
@@ -399,8 +400,6 @@ pub struct Settlement<'info> {
     token_program: Program<'info, Token>,
 
     system_program: Program<'info, System>,
-
-    rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -429,7 +428,8 @@ pub struct Withdraw<'info> {
         bump = vault_info.vault_bump
     )]
     vault_token_acc: Account<'info, TokenAccount>,
-
+ /// CHECK: Validated by constraint that ensures it matches vault_info.target_acc
+    /// and through PDA derivation seeds.
     target_acc: AccountInfo<'info>,
 
     #[account(
@@ -451,9 +451,7 @@ pub struct Withdraw<'info> {
     mint: Account<'info, Mint>,
 
     token_program: Program<'info, Token>,
-
-    rent: Sysvar<'info, Rent>,
-
+    
     system_program: Program<'info, System>,
 }
 
@@ -483,7 +481,8 @@ pub struct CloseVault<'info> {
         bump = vault_info.vault_bump
     )]
     vault_token_acc: Account<'info, TokenAccount>,
-
+ /// CHECK: Validated by constraint that ensures it matches vault_info.target_acc
+    /// and through PDA derivation seeds.
     target_acc: AccountInfo<'info>,
 
     #[account(mut)]
