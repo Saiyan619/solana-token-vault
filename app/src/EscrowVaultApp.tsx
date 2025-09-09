@@ -14,7 +14,8 @@ import {
   Twitter, 
   Github,
   ArrowUp,
-  ChevronDown
+  ChevronDown,
+  Lock
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,9 @@ import { Button } from './components/ui/button';
 import CreateVault from './main-func-components/CreateVault';
 import DepositToken from './main-func-components/DepositToken';
 import SettleTokens from './main-func-components/SettleTokens';
+import WithDrawTokens from './main-func-components/WithDrawTokens';
+import CloseVault from './main-func-components/CloseVault';
+import WalletButton from './main-func-components/WalletButton';
 
 export const EscrowVaultApp = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -77,23 +81,16 @@ export const EscrowVaultApp = () => {
       {/* Header */}
       <header className="border-b border-border backdrop-blur-sm bg-background/50">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center flex-wrap gap-2 justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <Database className="w-6 h-6 text-white" />
+                <Lock className="w-6 h-6 text-black" />
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-vault-purple to-vault-purple-light bg-clip-text text-transparent">
+              <h1 className="text-2xl text-black font-bold">
                 SolVault
               </h1>
             </div>
-            <Button 
-              variant={isConnected ? "default" : "link"}
-              onClick={handleConnect}
-              className="flex items-center gap-2"
-            >
-              <Wallet size={18} />
-              {isConnected ? 'Connected' : 'Connect Wallet'}
-            </Button>
+            <WalletButton />
           </div>
         </div>
       </header>
@@ -103,15 +100,29 @@ export const EscrowVaultApp = () => {
 
         {/* Main Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                      {/* CreateVault Section */}
+
          <CreateVault />
-          {/* Deposit/Settlement */}
-          <div className="space-y-6">
             {/* Deposit Section */}
+                      <div className="space-y-6">
+
            <DepositToken />
 
-            {/* Settlement Section */}
-           <SettleTokens />
+
           </div>
+                      {/* SettleTokens Section */}
+
+            <SettleTokens />
+
+          <div className="space-y-6">
+
+                      {/* WithDrawTokens Section */}
+                        <WithDrawTokens />
+
+                    </div>
+
+          {/* Close section */}
+          <CloseVault />
         </div>
 
         {/* Vault History */}
@@ -179,7 +190,7 @@ export const EscrowVaultApp = () => {
                 </div>
                 <div>
                   <span className="text-muted-foreground text-sm">Current Balance:</span>
-                  <p className="font-mono text-vault-green font-semibold">125.5 SOL</p>
+                  <p className="font-mono text-vault-green font-semibold">125.5 USDC</p>
                 </div>
               </div>
               <div className="space-y-4">

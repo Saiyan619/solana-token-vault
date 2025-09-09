@@ -13,6 +13,7 @@ import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/solana_escrow_vault.json';
 
 const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
+const PLATFORM = new PublicKey("65rSM9vVip4U8TS4gZD2ovzWqrMr95kbdBg5Niv6GCWq");
 const SettleTokens = () => {
     const { connection } = useConnection();
       const wallet = useAnchorWallet();
@@ -21,8 +22,9 @@ const SettleTokens = () => {
             const [loading, setLoading] = useState(false);
             const [result, setResult] = useState<any>(null);
     const [error, setError] = useState<string>('');
+          const [clientAddress, setClientAddress] = useState('');
     
-    const handleSettleToken = async (mintAddress:string) => {
+    const handleSettleToken = async (mintAddress:string, clientAddress:string) => {
         if (!wallet) {
             console.error("wallet not connected!!!")
         }
@@ -36,35 +38,40 @@ const SettleTokens = () => {
             });
 
             const program = new Program(idl as any, provider);
-            const settler = wallet.publicKey;
-            const mintPubKey = new PublicKey(mintAddress);
+            const settlerPubKey = wallet.publicKey;
+          const clientPubkey = new PublicKey(clientAddress.trim());
+          const mintPubKey = new PublicKey(mintAddress);
+          
             const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
                 Buffer.from("vault_info"),
-                settler.toBuffer(),
+              settlerPubKey.toBuffer(),
+               clientPubkey.toBuffer(),
                 mintPubKey.toBuffer()
             ], PROGRAM_ID);
             const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
                 Buffer.from("vault"),
-                settler.toBuffer(),
+                settlerPubKey.toBuffer(),
+                                                clientPubkey.toBuffer(),
                  mintPubKey.toBuffer()
             ], PROGRAM_ID
           )
 
             const merchantTokenAccount = await getAssociatedTokenAddress(
                 mintPubKey,
-                settler
+                settlerPubKey
           )
 
              const platformTokenAccount = await getAssociatedTokenAddress(
                 mintPubKey,
-                PROGRAM_ID
+                PLATFORM
           )
 
             const tx = await program.methods.settlement().accounts({
                 vaultInfo: vaultInfoPDA,
                 vaultTokenAcc: vaultTokenPDA,
                 merchantTokenAccount: merchantTokenAccount,
-                platformTokenAccount:platformTokenAccount,
+              platformTokenAccount: platformTokenAccount,
+                targetAcc: clientPubkey,
                 mint: mintPubKey,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 rent: SYSVAR_RENT_PUBKEY,
@@ -86,29 +93,43 @@ const SettleTokens = () => {
                   Settlement
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+        <CardContent className="space-y-4">
+            <div className="space-y-2">
+                                  <Label htmlFor="deposit-amount" className="text-foreground">Client Address</Label>
+                                  <div className="relative">
+                                    <Input
+                                      id="deposit-amount"
+                                      placeholder="0xfgn4j5g398onbwtlkioklr..."
+                          value={clientAddress}
+                          type='text'
+                                      onChange={(e) => setClientAddress(e.target.value)}
+                                      className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:ring-vault-green pr-16"
+                                    />
+                                    
+                                  </div>
+                                </div>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Vault Balance:</span>
-                    <span className="font-mono text-foreground">125.5 SOL</span>
+                    <span className="font-mono text-foreground">125.5 USDC</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Merchant Fee (5%):</span>
-                    <span className="font-mono text-foreground">6.275 SOL</span>
+                    <span className="font-mono text-foreground">6.275 USDC</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Platform Fee (1%):</span>
-                    <span className="font-mono text-foreground">1.255 SOL</span>
+                    <span className="font-mono text-foreground">1.255 USDC</span>
                   </div>
                   <div className="border-t border-border pt-2 flex justify-between font-semibold">
                     <span className="text-foreground">Settlement Amount:</span>
-                    <span className="font-mono text-vault-green">117.97 SOL</span>
+                    <span className="font-mono text-vault-green">117.97 USDC</span>
                   </div>
                 </div>
                 <Button 
                   variant="default" 
                       className="w-full"
-                      onClick={()=>handleSettleToken("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr")}
+                      onClick={()=>handleSettleToken("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr", clientAddress)}
                 >
                   Settle
                 </Button>

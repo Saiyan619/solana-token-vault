@@ -291,8 +291,7 @@
               },
               {
                 "kind": "account",
-                "path": "vault_info.merchant",
-                "account": "VaultInfo"
+                "path": "signer"
               },
               {
                 "kind": "account",

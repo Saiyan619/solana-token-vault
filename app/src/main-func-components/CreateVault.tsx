@@ -24,8 +24,6 @@ const DEVNET_TOKENS = {
 const CreateVault = () => {
     const { connection } = useConnection();
     const wallet = useAnchorWallet();
-    const [merchantAddress, setMerchantAddress] = useState('');
-    const [merchantFee, setMerchantFee] = useState('');
     const [clientAddress, setClientAddress] = useState('');
     const [selectedToken, setSelectedToken] = useState('USDC');
     const [loading, setLoading] = useState(false);
@@ -63,10 +61,10 @@ const CreateVault = () => {
           const program = new Program(idl as any, provider);
           
             const mintPubkey = new PublicKey(mintAddress);
-            const merchantPubkey = merchantAddress 
-                ? new PublicKey(merchantAddress)
-                : wallet.publicKey;
-            const userPubkey = new PublicKey(targetUserAddress);
+            // const merchantPubkey = merchantAddress 
+            //     ? new PublicKey(merchantAddress)
+            //     : wallet.publicKey;
+            const userPubkey = new PublicKey(targetUserAddress.trim());
 
             // Derive PDAs using sync method (more efficient in newer versions)
             const [vaultInfoPDA] = PublicKey.findProgramAddressSync(
