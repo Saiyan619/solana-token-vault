@@ -271,7 +271,7 @@ pub struct Initialize<'info> {
         payer = signer,
         seeds = [
             b"vault",
-            vault_info.merchant.as_ref(),
+            signer.key().as_ref(),
             target_acc.key().as_ref(),
             mint.key().as_ref()
         ],
