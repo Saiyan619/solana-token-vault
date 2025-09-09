@@ -80,11 +80,11 @@ mod solana_escrow_vault {
 
         let signer_key = ctx.accounts.signer.key();
         let mint_key = ctx.accounts.mint.key();
-        let bump = vault_info.vault_bump;
+        let bump = vault_info.info_bump;
         let target_acc = ctx.accounts.target_acc.key();
 
         let seeds = &[
-            b"vault",
+            b"vault_info",
             vault_info.merchant.as_ref(),
             target_acc.as_ref(),
             mint_key.as_ref(),
