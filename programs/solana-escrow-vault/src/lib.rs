@@ -137,7 +137,7 @@ mod solana_escrow_vault {
 
     pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
         let vault_info = &ctx.accounts.vault_info;
-        let bump = vault_info.vault_bump;
+        let bump = vault_info.info_bump;
         let signer = &ctx.accounts.signer;
         let mint = &ctx.accounts.mint.key();
         let target_acc = ctx.accounts.target_acc.key();
@@ -164,7 +164,7 @@ mod solana_escrow_vault {
         let penalty_amount = vault_balance.checked_sub(refund_amount).unwrap(); // other 50%
 
         let seeds = &[
-            b"vault",
+            b"vault_info",
             vault_info.merchant.as_ref(),
             target_acc.as_ref(),
             mint.as_ref(),
@@ -245,7 +245,7 @@ mod solana_escrow_vault {
             cpi_accounts,
             &[seeds],
         ))?;
-
+        msg!("Vault has been closed successfully by {}", ctx.accounts.signer.key());
         Ok(())
     }
 }
@@ -459,6 +459,7 @@ pub struct Withdraw<'info> {
 pub struct CloseVault<'info> {
     #[account(
         mut,
+        close=signer,
         seeds = [
             b"vault_info",
             vault_info.merchant.as_ref(),
