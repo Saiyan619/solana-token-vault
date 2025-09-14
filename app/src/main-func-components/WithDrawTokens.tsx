@@ -50,13 +50,35 @@ const WithDrawTokens = () => {
         ], PROGRAM_ID);
 
         const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-            Buffer.from("vault_info"),
+            Buffer.from("vault"),
             merchantPubKey.toBuffer(),
             withdrawerPubKey.toBuffer(),
             mintPubKey.toBuffer()
         ], PROGRAM_ID);
 
-        ///////im not done yet
+      ///////im not done yet
+      let userTokenAccount = await getAssociatedTokenAddress(
+        mintPubKey,
+        withdrawerPubKey
+      )
+      let merchantTokenAccount = await getAssociatedTokenAddress(
+        mintPubKey,
+        merchantPubKey
+      )
+      
+      const tx = await program.methods.withdraw()
+        .accounts({
+          vaultInfo: vaultInfoPDA,
+          vaultTokenAcc: vaultTokenPDA,
+          mint: mintPubKey,
+          targetAcc: withdrawerPubKey,
+          userTokenAccount: userTokenAccount,
+          merchantTokenAccount: merchantTokenAccount,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }).rpc();
+      
+      console.log("withdrw transaction signature", tx);
 
     } catch (error) {
         console.error("Error during withdrawal:", error);

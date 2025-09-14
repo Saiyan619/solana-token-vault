@@ -51,7 +51,7 @@ const SettleTokens = () => {
             const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
                 Buffer.from("vault"),
                 settlerPubKey.toBuffer(),
-                                                clientPubkey.toBuffer(),
+                clientPubkey.toBuffer(),
                  mintPubKey.toBuffer()
             ], PROGRAM_ID
           )
