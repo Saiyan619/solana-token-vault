@@ -16,7 +16,7 @@ import { useCreateVault } from '@/program-calls-hooks/programHooks';
 // };
 
 const CreateVault = () => {
-    const { initializeNewVault, data, isPending, isSuccess, isError, wallet } = useCreateVault();
+    const { initializeNewVault, data, isPending, wallet } = useCreateVault();
     const [clientAddress, setClientAddress] = useState('');
     const [selectedToken, setSelectedToken] = useState('USDC');
 

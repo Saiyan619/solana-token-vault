@@ -10,7 +10,7 @@ import { useDepositToVault } from '@/program-calls-hooks/programHooks';
 
 
 const DepositToken = () => {
-  const { deposit, data, isPending, isSuccess } = useDepositToVault()
+  const { deposit, isPending } = useDepositToVault()
   const [depositAmount, setDepositAmount] = useState(0);
   const [selectedToken, setSelectedToken] = useState('USDC');
   const [merchantAddress, setMerchantAddress] = useState('');

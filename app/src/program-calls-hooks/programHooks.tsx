@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
+const PLATFORM = new PublicKey("65rSM9vVip4U8TS4gZD2ovzWqrMr95kbdBg5Niv6GCWq");
 
 
 interface InitializeVaultParams {
@@ -324,7 +325,7 @@ export const useWithDrawTokens = () => {
         mutationFn: withdrawTokens,
         onSuccess: (data: any) => {
             // 'data' contains what you returned from InitializeVault function
-            toast.success("Deposited Funds Successfully!", {
+            toast.success("Withdraw Successfully!", {
                 description: `Transaction: ${data}`,
                 // Or use a Solana explorer link:
                 action: {
@@ -334,10 +335,111 @@ export const useWithDrawTokens = () => {
             });
         },
         onError: (error) => {
-            console.error("Vault creation failed:", error.message);
-            toast.error(`Failed to create vault. Please try again.: ${error.message}`);
+            console.error("Withdraw failed:", error.message);
+            toast.error(`Failed to withdraw from vault. Please try again.: ${error.message}`);
         }
     });
 
     return { withdraw, data, isPending, isSuccess, isError, wallet, connection };
+}
+
+interface SettleParams{
+    clientAddress: string;
+    mintAddress: string;
+}
+
+export const useSettleTokens = () => {
+     const { connection } = useConnection();
+    const wallet = useAnchorWallet();
+    const settleToken = async ({clientAddress, mintAddress}:SettleParams) => {
+        if (!wallet) {
+                    console.error("wallet not connected!!!")
+                }
+                console.log("settle boys.....")
+                try {
+                            console.log("stil...settle boys.....")
+        
+                    console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "settlement"));
+                    const provider = new AnchorProvider(connection, wallet, {
+                        commitment: "confirmed"
+                    });
+        
+                    const program = new Program(idl as any, provider);
+                    const settlerPubKey = wallet.publicKey;
+                  const clientPubkey = new PublicKey(clientAddress.trim());
+                  const mintPubKey = new PublicKey(mintAddress);
+                  
+                    const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
+                        Buffer.from("vault_info"),
+                      settlerPubKey.toBuffer(),
+                       clientPubkey.toBuffer(),
+                        mintPubKey.toBuffer()
+                    ], PROGRAM_ID);
+                    const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
+                        Buffer.from("vault"),
+                        settlerPubKey.toBuffer(),
+                        clientPubkey.toBuffer(),
+                         mintPubKey.toBuffer()
+                    ], PROGRAM_ID
+                  )
+        
+                    const merchantTokenAccount = await getAssociatedTokenAddress(
+                        mintPubKey,
+                        settlerPubKey
+                  )
+        
+                     const platformTokenAccount = await getAssociatedTokenAddress(
+                        mintPubKey,
+                        PLATFORM
+                  )
+        
+                    const tx = await program.methods.settlement().accounts({
+                        vaultInfo: vaultInfoPDA,
+                        vaultTokenAcc: vaultTokenPDA,
+                        merchantTokenAccount: merchantTokenAccount,
+                      platformTokenAccount: platformTokenAccount,
+                        targetAcc: clientPubkey,
+                        mint: mintPubKey,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        rent: SYSVAR_RENT_PUBKEY,
+                        systemProgram: SystemProgram.programId
+                    }).rpc();
+                    console.log("setlement transaction signature:", tx);
+
+                      console.log("settle:", tx);
+        return tx;
+        
+                } catch (error) {
+                    console.error("Error settling token:", error);
+                    throw error;
+                }
+      
+    }
+
+      const { mutateAsync: settle, data, isPending, isSuccess, isError } = useMutation({
+        mutationFn: settleToken,
+        onSuccess: (data: any) => {
+            // 'data' contains what you returned from InitializeVault function
+            toast.success("Settled Funds Successfully!", {
+                description: `Transaction: ${data}`,
+                // Or use a Solana explorer link:
+                action: {
+                    label: "View on Explorer",
+                    onClick: () => window.open(`https://explorer.solana.com/tx/${data}?cluster=devnet`, '_blank')
+                }
+            });
+        },
+        onError: (error) => {
+            console.error("Settlement failed:", error.message);
+            toast.error(`Settlement failed. Please try again.: ${error.message}`);
+        }
+    });
+
+    return { settle, data, isPending, isSuccess, isError, wallet, connection };
+}
+
+export const useCLoseVault = () => {
+    const closeVault = async () => {
+        
+    }
 }
