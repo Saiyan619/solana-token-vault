@@ -1,32 +1,32 @@
 import { useState } from 'react'
-import {PlusCircle} from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 // Updated import to use @coral-xyz/anchor instead of @project-serum/anchor
-import { PublicKey } from '@solana/web3.js';
 import { useCreateVault } from '@/program-calls-hooks/programHooks';
 
 // Token addresses for different networks
-const DEVNET_TOKENS = {
-  USDC: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
-  USDT: 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
-  SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
-};
+// const DEVNET_TOKENS = {
+//   USDC: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+//   USDT: 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
+//   SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
+// };
 
 const CreateVault = () => {
     const { initializeNewVault, data, isPending, isSuccess, isError, wallet } = useCreateVault();
     const [clientAddress, setClientAddress] = useState('');
     const [selectedToken, setSelectedToken] = useState('USDC');
-   
 
-    const handleCreateVaultHook = ()=>{
+
+    const handleCreateVaultHook = () => {
+        console.log(selectedToken)
         initializeNewVault({
-            mintAddress:"Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr",
-            targetUserAddress:clientAddress
-      })
+            mintAddress: selectedToken,
+            targetUserAddress: clientAddress
+        })
     }
 
     return (
@@ -60,15 +60,15 @@ const CreateVault = () => {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="USDC">USDC (Devnet)</SelectItem>
-                                <SelectItem value="USDT">USDT (Devnet)</SelectItem>
-                                <SelectItem value="SOL">Wrapped SOL</SelectItem>
+                                <SelectItem value="Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr">USDC (Devnet)</SelectItem>
+                                <SelectItem value="EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS">USDT (Devnet)</SelectItem>
+                                <SelectItem value="So11111111111111111111111111111111111111112">Wrapped SOL</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <Button 
-                        variant="default" 
+                    <Button
+                        variant="default"
                         className="w-full"
                         onClick={handleCreateVaultHook}
                         disabled={isPending || !wallet}
@@ -88,7 +88,7 @@ const CreateVault = () => {
                         </div>
                     )}
 
-                  
+
 
                     {/* Connection Warning */}
                     {!wallet && (

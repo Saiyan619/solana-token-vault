@@ -9,13 +9,7 @@ import { toast } from "sonner";
 
 const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 
-// Token addresses for different networks
-const DEVNET_TOKENS = {
-  USDC: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
-  USDT: 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
-  SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
-};
-// Define the parameter type for the mutation
+  
 interface InitializeVaultParams {
   mintAddress: string;
   targetUserAddress: string;
@@ -23,7 +17,7 @@ interface InitializeVaultParams {
 
 export const useCreateVault = () => {
   const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+const wallet = useAnchorWallet();
   
   const InitializeVault = async ({
     mintAddress,
@@ -140,4 +134,117 @@ export const useCreateVault = () => {
     return { initializeNewVault, data, isPending, isSuccess, isError, wallet, connection };
 }
 
+interface DepositParams {
+    amount: number;
+    mintAddress: string;
+    merchantAddress: string
+}
+export const useDepositToVault = () => {
+      const { connection } = useConnection();
+const wallet = useAnchorWallet();
+    const depositToVault = async ({amount, mintAddress, merchantAddress}:DepositParams) => {
+        if (!wallet) {
+                    console.error("Wallet not connected");
+              }
+              if (merchantAddress === ""){
+                console.error("Merchant address is required");
+              }
+                console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "deposit"));
+                try {
+                  console.log("Starting deposit of amount:", amount);
+                  
+                    const provider = new AnchorProvider(connection, wallet, {
+                                    commitment: "confirmed"
+                    });
+                  
+                    const program = new Program(idl as any, provider);
+                    const depositorPubKey = wallet.publicKey;
+                  const merchantPubKey = new PublicKey(merchantAddress.trim());
+                  const mintPubKey = new PublicKey(mintAddress);
+                  
+                    const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
+                      Buffer.from("vault_info"),
+                      merchantPubKey.toBuffer(),
+                        depositorPubKey.toBuffer(),
+                        mintPubKey.toBuffer()
+                    ], PROGRAM_ID
+                    )
+        
+                    const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
+                      Buffer.from("vault"),
+                      merchantPubKey.toBuffer(),
+                        depositorPubKey.toBuffer(),
+                         mintPubKey.toBuffer()
+                    ], PROGRAM_ID
+                  )
+                  
+                  const userTokenAccount = await getAssociatedTokenAddress(
+                    mintPubKey,
+                    depositorPubKey
+                  );
+        
+              //      const accountInfo = await connection.getTokenAccountsByOwner(depositor, {
+              //   mint: mintPubKey
+              // });
+        
+              // if (accountInfo.value.length === 0) {
+              //   throw new Error(`No token account found for mint ${mintAddress}. Please create a token account and get some test tokens first.`);
+              // }
+        
+              // Use the first token account found (there should typically be only one ATA)
+              // const actualUserTokenAccount = accountInfo.value[0].pubkey;
+              
+              // Get account details to check balance
+              // const tokenAccountInfo = await connection.getTokenAccountBalance(actualUserTokenAccount);
+              // const balance = parseInt(tokenAccountInfo.value.amount);
+              
+              // console.log(`Token account balance: ${balance}, trying to deposit: ${amount}`);
+              
+              // if (balance < amount) {
+              //   throw new Error(`Insufficient balance. You have ${balance} tokens, trying to deposit ${amount}. Please get more test tokens.`);
+              // }
+        
+                  const tx = await program.methods.deposit(new BN(amount))
+                    .accounts({
+                      vaultInfo: vaultInfoPDA,          // vault_info account
+                      vaultTokenAcc: vaultTokenPDA,     // vault token account
+                      userTokenAccount: userTokenAccount, // user's token account
+                      mint: mintPubKey,
+                       targetAcc:depositorPubKey,
+                                      tokenProgram: TOKEN_PROGRAM_ID, // matches token_program in Rust
+                                      signer: wallet.publicKey,
+                                      rent: SYSVAR_RENT_PUBKEY,
+                                      systemProgram: SystemProgram.programId // matches system_program in Rust
+                    }).rpc();
+        
+                    await connection.confirmTransaction(tx, 'confirmed');
+                                console.log('Deposit transaction signature:', tx);
 
+                    return tx;
+                } catch (error) {
+                  console.error("Error during deposit:", error)
+                  throw error;
+                }
+    }
+
+    const { mutateAsync: deposit, data, isPending, isSuccess, isError } = useMutation({
+        mutationFn: depositToVault,
+        onSuccess: (data:any) => {
+            // 'data' contains what you returned from InitializeVault function
+            toast.success("Deposited Funds Successfully!", {
+                description: `Transaction: ${data}`,
+                // Or use a Solana explorer link:
+                action: {
+                    label: "View on Explorer",
+                    onClick: () => window.open(`https://explorer.solana.com/tx/${data}?cluster=devnet`, '_blank')
+                }
+            });
+        },
+        onError: (error) => {
+            console.error("Vault creation failed:", error.message);
+            toast.error(`Failed to create vault. Please try again.: ${error.message}`);
+        }
+    });
+    
+    return { deposit, data, isPending, isSuccess, isError, wallet, connection };
+}
