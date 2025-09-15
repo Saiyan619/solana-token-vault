@@ -1,30 +1,40 @@
-import path from "path"
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import path from 'path'
 
 export default defineConfig(({ mode }) => {
-  
+  // Load .env from parent folder
+  const env = loadEnv(mode, path.resolve(__dirname, '../'), '')
+
   return {
-    plugins: [
-      react(),
-      nodePolyfills({
-        protocolImports: true,
-      }),
-    ],
+    plugins: [react()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        '@': '/src',
       },
     },
     define: {
       global: 'globalThis',
     },
     optimizeDeps: {
-      include: ['@solana/web3.js', '@coral-xyz/anchor'],
+      esbuildOptions: {
+        define: {
+          global: 'globalThis',
+        },
+        plugins: [
+          NodeGlobalsPolyfillPlugin({
+            buffer: true,
+            process: true,
+          }),
+        ],
+      },
+    },
+    build: {
+      target: 'es2020',
     },
     server: {
       host: '0.0.0.0',
     },
-  };
-});
+  }
+})
