@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
-      'process.env': env
     },
     optimizeDeps: {
       include: ['@solana/web3.js', '@coral-xyz/anchor'],
