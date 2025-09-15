@@ -1,6 +1,6 @@
 // Updated import to use @coral-xyz/anchor instead of @project-serum/anchor
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
+import { PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/solana_escrow_vault.json';
@@ -27,6 +27,7 @@ export const useCreateVault = () => {
     }: InitializeVaultParams) => {
         if (!wallet) {
             throw new Error("Wallet not connected");
+            return
         }
 
 
@@ -116,7 +117,7 @@ export const useCreateVault = () => {
 
     const { mutateAsync: initializeNewVault, data, isPending, isSuccess, isError } = useMutation({
         mutationFn: InitializeVault,
-        onSuccess: (data) => {
+        onSuccess: (data:any) => {
             // 'data' contains what you returned from InitializeVault function
             toast.success("Vault Created Successfully!", {
                 description: `Transaction: ${data.signature}`,
@@ -150,6 +151,7 @@ export const useDepositToVault = () => {
     const depositToVault = async ({ amount, mintAddress, merchantAddress }: DepositParams) => {
         if (!wallet) {
             console.error("Wallet not connected");
+            return;
         }
         if (merchantAddress === "") {
             console.error("Merchant address is required");
@@ -266,6 +268,7 @@ export const useWithDrawTokens = () => {
     const withdrawTokens = async ({ mintAddress, merchantAddress }: WithDrawParams) => {
         if (!wallet) {
             console.error("Wallet not connected");
+            return;
         }
         if (merchantAddress === "") {
             console.error("Merchant address is required");
@@ -362,7 +365,8 @@ export const useSettleTokens = () => {
     const wallet = useAnchorWallet();
     const settleToken = async ({ clientAddress, mintAddress }: SettleParams) => {
         if (!wallet) {
-            console.error("wallet not connected!!!")
+            console.error("wallet not connected!!!");
+            return;
         }
         console.log("settle boys.....")
         try {
@@ -502,7 +506,7 @@ export const useCLoseVault = () => {
 
             // Check if accounts exist before trying to close
             try {
-                const vaultInfoAccount = await program.account.vaultInfo.fetch(vaultInfoPDA);
+                const vaultInfoAccount = await (program.account as any).vaultInfo.fetch(vaultInfoPDA);
                 console.log("Vault Info Account found:", vaultInfoAccount);
                 console.log("Stored amount:", vaultInfoAccount.amount.toString());
                 console.log("Stored merchant:", vaultInfoAccount.merchant.toString());

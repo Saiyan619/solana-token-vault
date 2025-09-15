@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import { PublicKey } from '@solana/web3.js';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/solana_escrow_vault.json';
 import { Label } from '@/components/ui/label';
@@ -25,6 +24,7 @@ const VaultDetails = () => {
   const getVaultDetails = async (merchantAddress: string, clientAddress: string, mintAddress: string) => {
     if (!wallet) {
       console.error("Wallet is not connected");
+      return;
     }
     if (clientAddress === "" && merchantAddress === "") {
       console.error("client and merchant address are required");
@@ -47,16 +47,9 @@ const VaultDetails = () => {
       mintPubKey.toBuffer()
     ], PROGRAM_ID);
 
-    const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-      Buffer.from("vault"),
-      merchantPubKey.toBuffer(),
-      clientPubkey.toBuffer(),
-      mintPubKey.toBuffer()
-    ], PROGRAM_ID);
-
     try {
       console.log("fetching vault details......");
-      const vaultInfoAccount = await program.account.vaultInfo.fetch(vaultInfoPDA);
+      const vaultInfoAccount = await(program.account as any).vaultInfo.fetch(vaultInfoPDA);
       console.log("Vault Info Account found:", vaultInfoAccount);
       console.log("Vaukt Address:", vaultInfoPDA.toBase58());
       console.log("Stored amount:", vaultInfoAccount.amount.toString());

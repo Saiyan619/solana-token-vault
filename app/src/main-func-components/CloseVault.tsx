@@ -3,12 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {  ClosedCaptionIcon, Handshake, Loader2Icon, ShieldClose } from 'lucide-react';
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
-import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import idl from '@/solana_escrow_vault.json';
+import {  Loader2Icon, ShieldClose } from 'lucide-react';
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -23,127 +18,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useCLoseVault } from '@/program-calls-hooks/programHooks';
 
-const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 
 const CloseVault = () => {
-    const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+
   const { close, isPending } = useCLoseVault();
-          const [depositAmount, setDepositAmount] = useState(0);
           const [selectedToken, setSelectedToken] = useState('USDC');
               const [clientAddress, setClientAddress] = useState('');
           
-                const [loading, setLoading] = useState(false);
-                const [result, setResult] = useState<any>(null);
-        const [error, setError] = useState<string>('');
-
-    const closeVault = async (mintAddress: string, clientAddress: string) => {
-    if (!wallet) {
-        console.error("Wallet is not connected");
-        return;
-    }
-    if (clientAddress === "") {
-        console.error("Client address is required");
-        return;
-    }
-    
-    console.log("Closing vault...");
-    console.log("Mint Address:", mintAddress);
-    console.log("Client Address:", clientAddress);
-    console.log("Wallet (Merchant) Address:", wallet.publicKey.toString());
-    
-    try {
-        const provider = new AnchorProvider(connection, wallet, {
-            commitment: 'confirmed'
-        });
-        const program = new Program(idl as any, provider);
-        
-        const merchantPubKey = wallet.publicKey;
-        const clientPubkey = new PublicKey(clientAddress.trim());
-        const mintPubKey = new PublicKey(mintAddress.trim());
-
-        // Generate PDAs
-        const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
-            Buffer.from("vault_info"),
-            merchantPubKey.toBuffer(),
-            clientPubkey.toBuffer(),
-            mintPubKey.toBuffer()
-        ], PROGRAM_ID);
-
-        const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-            Buffer.from("vault"),
-            merchantPubKey.toBuffer(),
-            clientPubkey.toBuffer(),
-            mintPubKey.toBuffer()
-        ], PROGRAM_ID);
-
-        console.log("Vault Info PDA:", vaultInfoPDA.toString());
-        console.log("Vault Token PDA:", vaultTokenPDA.toString());
-
-        // Check if accounts exist before trying to close
-        try {
-            const vaultInfoAccount = await program.account.vaultInfo.fetch(vaultInfoPDA);
-            console.log("Vault Info Account found:", vaultInfoAccount);
-            console.log("Stored amount:", vaultInfoAccount.amount.toString());
-            console.log("Stored merchant:", vaultInfoAccount.merchant.toString());
-            console.log("Stored target:", vaultInfoAccount.targetAcc.toString());
-        } catch (error) {
-            console.error("Vault Info Account not found:", error);
-            setResult("Error: Vault Info account not found. Make sure the vault exists.");
-            return;
-        }
-
-        try {
-            const vaultTokenAccount = await connection.getAccountInfo(vaultTokenPDA);
-            if (!vaultTokenAccount) {
-                console.error("Vault Token Account not found at PDA:", vaultTokenPDA.toString());
-                setResult("Error: Vault Token account not found. Make sure the vault was properly initialized.");
-                return;
-            }
-            console.log("Vault Token Account found");
-            
-            // Get token account info
-            const tokenAccountInfo = await connection.getTokenAccountBalance(vaultTokenPDA);
-            console.log("Token account balance:", tokenAccountInfo.value.amount);
-            
-            if (tokenAccountInfo.value.amount !== "0") {
-                console.error("Vault is not empty. Balance:", tokenAccountInfo.value.amount);
-                setResult("Error: Vault must be empty before closing. Current balance: " + tokenAccountInfo.value.amount);
-                return;
-            }
-        } catch (error) {
-            console.error("Error checking vault token account:", error);
-            setResult("Error: Could not verify vault token account");
-            return;
-        }
-
-        // If we get here, both accounts exist and vault is empty
-        console.log("All checks passed. Attempting to close vault...");
-
-        const tx = await program.methods.closevault()
-            .accounts({
-                vaultInfo: vaultInfoPDA,
-                vaultTokenAcc: vaultTokenPDA,
-                targetAcc: clientPubkey,
-                signer: merchantPubKey,
-                mint: mintPubKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId
-            })
-            .rpc();
-            
-        console.log("Vault closed successfully", tx);
-        setResult("Vault closed successfully. Transaction: " + tx);
-        
-    } catch (error) {
-        console.error("Error closing vault:", error);
-        if (error instanceof Error) {
-            console.error("Error message:", error.message);
-        }
-        setResult("Error closing vault: " + (error as Error).message);
-    }
-}
-
   const handleCloseVault = () => {
     console.log(selectedToken,clientAddress)
     close({
