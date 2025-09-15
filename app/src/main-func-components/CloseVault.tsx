@@ -3,19 +3,32 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {  ClosedCaptionIcon, Handshake, ShieldClose } from 'lucide-react';
+import {  ClosedCaptionIcon, Handshake, Loader2Icon, ShieldClose } from 'lucide-react';
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/solana_escrow_vault.json';
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useCLoseVault } from '@/program-calls-hooks/programHooks';
 
 const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 
 const CloseVault = () => {
     const { connection } = useConnection();
-          const wallet = useAnchorWallet();
+  const wallet = useAnchorWallet();
+  const { close, isPending } = useCLoseVault();
           const [depositAmount, setDepositAmount] = useState(0);
           const [selectedToken, setSelectedToken] = useState('USDC');
               const [clientAddress, setClientAddress] = useState('');
@@ -130,6 +143,14 @@ const CloseVault = () => {
         setResult("Error closing vault: " + (error as Error).message);
     }
 }
+
+  const handleCloseVault = () => {
+    console.log(selectedToken,clientAddress)
+    close({
+      mintAddress:selectedToken,
+      clientAddress:clientAddress
+    })
+  }
   return (
     <div>
        <Card className="bg-gradient-card border-border shadow-card">
@@ -154,14 +175,58 @@ const CloseVault = () => {
                                           
                                         </div>
                                       </div>
+
+           <div className="space-y-2">
+            <Label className="text-foreground">Token Type</Label>
+            <Select value={selectedToken} onValueChange={setSelectedToken}>
+              <SelectTrigger className="bg-background/50 border-border text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr">USDC (Devnet)</SelectItem>
+                <SelectItem value="EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS">USDT (Devnet)</SelectItem>
+                <SelectItem value="So11111111111111111111111111111111111111112">Wrapped SOL</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
                      
-                      <Button 
-                        variant="destructive" 
-                            className="w-full"
-                            onClick={()=>closeVault("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr", clientAddress)}
-                      >
-                        Close Vault
-                      </Button>
+                      <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                      
+                                    {isPending ?
+                                      <Button variant="outline"
+                                        className="w-full" disabled>
+                                        <Loader2Icon className="animate-spin" />
+                                        Please wait
+                                      </Button> :
+                                      <Button
+                                        variant="destructive"
+                                        className="w-full"
+                      
+                                      >
+                                        Withdraw
+                                      </Button>
+                                    }
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. Please be re-assured you have settled with your client.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction>
+                      
+                                        <Button variant="default" className='w-full'
+                                          onClick={handleCloseVault}>
+                                          Close Vault
+                                        </Button>
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                     </CardContent>
                   </Card>
     </div>

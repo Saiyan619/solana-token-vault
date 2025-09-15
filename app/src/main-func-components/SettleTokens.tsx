@@ -5,87 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
-import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import idl from '@/solana_escrow_vault.json';
 import { useSettleTokens } from '@/program-calls-hooks/programHooks';
 
-const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
-const PLATFORM = new PublicKey("65rSM9vVip4U8TS4gZD2ovzWqrMr95kbdBg5Niv6GCWq");
 const SettleTokens = () => {
-  const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+
   const { settle, isPending } = useSettleTokens();
-  const [depositAmount, setDepositAmount] = useState(0);
   const [selectedToken, setSelectedToken] = useState('USDC');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string>('');
   const [clientAddress, setClientAddress] = useState('');
-
-  const handleSettleToken = async (mintAddress: string, clientAddress: string) => {
-    if (!wallet) {
-      console.error("wallet not connected!!!")
-    }
-    console.log("settle boys.....")
-    try {
-      console.log("stil...settle boys.....")
-
-      console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "settlement"));
-      const provider = new AnchorProvider(connection, wallet, {
-        commitment: "confirmed"
-      });
-
-      const program = new Program(idl as any, provider);
-      const settlerPubKey = wallet.publicKey;
-      const clientPubkey = new PublicKey(clientAddress.trim());
-      const mintPubKey = new PublicKey(mintAddress);
-
-      const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
-        Buffer.from("vault_info"),
-        settlerPubKey.toBuffer(),
-        clientPubkey.toBuffer(),
-        mintPubKey.toBuffer()
-      ], PROGRAM_ID);
-      const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-        Buffer.from("vault"),
-        settlerPubKey.toBuffer(),
-        clientPubkey.toBuffer(),
-        mintPubKey.toBuffer()
-      ], PROGRAM_ID
-      )
-
-      const merchantTokenAccount = await getAssociatedTokenAddress(
-        mintPubKey,
-        settlerPubKey
-      )
-
-      const platformTokenAccount = await getAssociatedTokenAddress(
-        mintPubKey,
-        PLATFORM
-      )
-
-      const tx = await program.methods.settlement().accounts({
-        vaultInfo: vaultInfoPDA,
-        vaultTokenAcc: vaultTokenPDA,
-        merchantTokenAccount: merchantTokenAccount,
-        platformTokenAccount: platformTokenAccount,
-        targetAcc: clientPubkey,
-        mint: mintPubKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId
-      }).rpc();
-      console.log("setlement transaction signature:", tx);
-
-    } catch (error) {
-      console.error("Error settling token:", error);
-      throw error;
-    }
-  }
 
   const handleSettlement = () => {
     settle({

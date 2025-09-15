@@ -10,6 +10,7 @@ import { toast } from "sonner";
 const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
 const PLATFORM = new PublicKey("65rSM9vVip4U8TS4gZD2ovzWqrMr95kbdBg5Niv6GCWq");
 
+/////////////////////////// Hook for Creating the Vault //////////////////////////////////
 
 interface InitializeVaultParams {
     mintAddress: string;
@@ -135,6 +136,9 @@ export const useCreateVault = () => {
     return { initializeNewVault, data, isPending, isSuccess, isError, wallet, connection };
 }
 
+
+/////////////////////////// Hook for Depositing to the Vault //////////////////////////////////
+
 interface DepositParams {
     amount: number;
     mintAddress: string;
@@ -250,75 +254,77 @@ export const useDepositToVault = () => {
     return { deposit, data, isPending, isSuccess, isError, wallet, connection };
 }
 
-interface WithDrawParams{
+/////////////////////////// Hook for Withdrawing Funds //////////////////////////////////
+
+interface WithDrawParams {
     mintAddress: string;
     merchantAddress: string;
 }
 export const useWithDrawTokens = () => {
     const { connection } = useConnection();
     const wallet = useAnchorWallet();
-    const withdrawTokens = async ({mintAddress, merchantAddress}:WithDrawParams) => {
-         if(!wallet){
-                console.error("Wallet not connected");
-            }
-            if (merchantAddress === "") {
-                console.error("Merchant address is required");
-            }
-            console.log("Withdrawing tokens...");
-            console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "withdraw"));
-            try {
-                const provider = new AnchorProvider(connection, wallet, {
-                    commitment: 'confirmed'
-                });
-                const program = new Program(idl as any, provider);
-                const withdrawerPubKey = wallet.publicKey;
-                const merchantPubKey = new PublicKey(merchantAddress);
-                const mintPubKey = new PublicKey(mintAddress);
-        
-                const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
-                    Buffer.from("vault_info"),
-                    merchantPubKey.toBuffer(),
-                    withdrawerPubKey.toBuffer(),
-                    mintPubKey.toBuffer()
-                ], PROGRAM_ID);
-        
-                const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-                    Buffer.from("vault"),
-                    merchantPubKey.toBuffer(),
-                    withdrawerPubKey.toBuffer(),
-                    mintPubKey.toBuffer()
-                ], PROGRAM_ID);
-        
-              ///////im not done yet
-              let userTokenAccount = await getAssociatedTokenAddress(
+    const withdrawTokens = async ({ mintAddress, merchantAddress }: WithDrawParams) => {
+        if (!wallet) {
+            console.error("Wallet not connected");
+        }
+        if (merchantAddress === "") {
+            console.error("Merchant address is required");
+        }
+        console.log("Withdrawing tokens...");
+        console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "withdraw"));
+        try {
+            const provider = new AnchorProvider(connection, wallet, {
+                commitment: 'confirmed'
+            });
+            const program = new Program(idl as any, provider);
+            const withdrawerPubKey = wallet.publicKey;
+            const merchantPubKey = new PublicKey(merchantAddress);
+            const mintPubKey = new PublicKey(mintAddress);
+
+            const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault_info"),
+                merchantPubKey.toBuffer(),
+                withdrawerPubKey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID);
+
+            const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault"),
+                merchantPubKey.toBuffer(),
+                withdrawerPubKey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID);
+
+            ///////im not done yet
+            let userTokenAccount = await getAssociatedTokenAddress(
                 mintPubKey,
                 withdrawerPubKey
-              )
-              let merchantTokenAccount = await getAssociatedTokenAddress(
+            )
+            let merchantTokenAccount = await getAssociatedTokenAddress(
                 mintPubKey,
                 merchantPubKey
-              )
-              
-              const tx = await program.methods.withdraw()
+            )
+
+            const tx = await program.methods.withdraw()
                 .accounts({
-                  vaultInfo: vaultInfoPDA,
-                  vaultTokenAcc: vaultTokenPDA,
-                  mint: mintPubKey,
-                  targetAcc: withdrawerPubKey,
-                  userTokenAccount: userTokenAccount,
-                  merchantTokenAccount: merchantTokenAccount,
-                  tokenProgram: TOKEN_PROGRAM_ID,
-                  systemProgram: SystemProgram.programId,
+                    vaultInfo: vaultInfoPDA,
+                    vaultTokenAcc: vaultTokenPDA,
+                    mint: mintPubKey,
+                    targetAcc: withdrawerPubKey,
+                    userTokenAccount: userTokenAccount,
+                    merchantTokenAccount: merchantTokenAccount,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
                 }).rpc();
-              
-                console.log("withdrw transaction signature", tx);
-                return tx;
-        
-            } catch (error) {
-                console.error("Error during withdrawal:", error);
-                throw error;
-                
-            }
+
+            console.log("withdrw transaction signature", tx);
+            return tx;
+
+        } catch (error) {
+            console.error("Error during withdrawal:", error);
+            throw error;
+
+        }
     }
 
     const { mutateAsync: withdraw, data, isPending, isSuccess, isError } = useMutation({
@@ -343,80 +349,83 @@ export const useWithDrawTokens = () => {
     return { withdraw, data, isPending, isSuccess, isError, wallet, connection };
 }
 
-interface SettleParams{
+
+/////////////////////////// Hook for Settling the funds //////////////////////////////////
+
+interface SettleParams {
     clientAddress: string;
     mintAddress: string;
 }
 
 export const useSettleTokens = () => {
-     const { connection } = useConnection();
+    const { connection } = useConnection();
     const wallet = useAnchorWallet();
-    const settleToken = async ({clientAddress, mintAddress}:SettleParams) => {
+    const settleToken = async ({ clientAddress, mintAddress }: SettleParams) => {
         if (!wallet) {
-                    console.error("wallet not connected!!!")
-                }
-                console.log("settle boys.....")
-                try {
-                            console.log("stil...settle boys.....")
-        
-                    console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "settlement"));
-                    const provider = new AnchorProvider(connection, wallet, {
-                        commitment: "confirmed"
-                    });
-        
-                    const program = new Program(idl as any, provider);
-                    const settlerPubKey = wallet.publicKey;
-                  const clientPubkey = new PublicKey(clientAddress.trim());
-                  const mintPubKey = new PublicKey(mintAddress);
-                  
-                    const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
-                        Buffer.from("vault_info"),
-                      settlerPubKey.toBuffer(),
-                       clientPubkey.toBuffer(),
-                        mintPubKey.toBuffer()
-                    ], PROGRAM_ID);
-                    const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
-                        Buffer.from("vault"),
-                        settlerPubKey.toBuffer(),
-                        clientPubkey.toBuffer(),
-                         mintPubKey.toBuffer()
-                    ], PROGRAM_ID
-                  )
-        
-                    const merchantTokenAccount = await getAssociatedTokenAddress(
-                        mintPubKey,
-                        settlerPubKey
-                  )
-        
-                     const platformTokenAccount = await getAssociatedTokenAddress(
-                        mintPubKey,
-                        PLATFORM
-                  )
-        
-                    const tx = await program.methods.settlement().accounts({
-                        vaultInfo: vaultInfoPDA,
-                        vaultTokenAcc: vaultTokenPDA,
-                        merchantTokenAccount: merchantTokenAccount,
-                      platformTokenAccount: platformTokenAccount,
-                        targetAcc: clientPubkey,
-                        mint: mintPubKey,
-                        tokenProgram: TOKEN_PROGRAM_ID,
-                        rent: SYSVAR_RENT_PUBKEY,
-                        systemProgram: SystemProgram.programId
-                    }).rpc();
-                    console.log("setlement transaction signature:", tx);
+            console.error("wallet not connected!!!")
+        }
+        console.log("settle boys.....")
+        try {
+            console.log("stil...settle boys.....")
 
-                      console.log("settle:", tx);
-        return tx;
-        
-                } catch (error) {
-                    console.error("Error settling token:", error);
-                    throw error;
-                }
-      
+            console.log("IDL initialize method:", idl.instructions.find((i: any) => i.name === "settlement"));
+            const provider = new AnchorProvider(connection, wallet, {
+                commitment: "confirmed"
+            });
+
+            const program = new Program(idl as any, provider);
+            const settlerPubKey = wallet.publicKey;
+            const clientPubkey = new PublicKey(clientAddress.trim());
+            const mintPubKey = new PublicKey(mintAddress);
+
+            const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault_info"),
+                settlerPubKey.toBuffer(),
+                clientPubkey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID);
+            const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault"),
+                settlerPubKey.toBuffer(),
+                clientPubkey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID
+            )
+
+            const merchantTokenAccount = await getAssociatedTokenAddress(
+                mintPubKey,
+                settlerPubKey
+            )
+
+            const platformTokenAccount = await getAssociatedTokenAddress(
+                mintPubKey,
+                PLATFORM
+            )
+
+            const tx = await program.methods.settlement().accounts({
+                vaultInfo: vaultInfoPDA,
+                vaultTokenAcc: vaultTokenPDA,
+                merchantTokenAccount: merchantTokenAccount,
+                platformTokenAccount: platformTokenAccount,
+                targetAcc: clientPubkey,
+                mint: mintPubKey,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                rent: SYSVAR_RENT_PUBKEY,
+                systemProgram: SystemProgram.programId
+            }).rpc();
+            console.log("setlement transaction signature:", tx);
+
+            console.log("settle:", tx);
+            return tx;
+
+        } catch (error) {
+            console.error("Error settling token:", error);
+            throw error;
+        }
+
     }
 
-      const { mutateAsync: settle, data, isPending, isSuccess, isError } = useMutation({
+    const { mutateAsync: settle, data, isPending, isSuccess, isError } = useMutation({
         mutationFn: settleToken,
         onSuccess: (data: any) => {
             // 'data' contains what you returned from InitializeVault function
@@ -438,8 +447,134 @@ export const useSettleTokens = () => {
     return { settle, data, isPending, isSuccess, isError, wallet, connection };
 }
 
+
+
+/////////////////////////// Hook for closing the Vault //////////////////////////////////
+interface CloseParams {
+    mintAddress: string;
+    clientAddress: string;
+}
 export const useCLoseVault = () => {
-    const closeVault = async () => {
-        
+    const { connection } = useConnection();
+    const wallet = useAnchorWallet();
+    const closeVault = async ({ mintAddress, clientAddress }: CloseParams) => {
+        if (!wallet) {
+            console.error("Wallet is not connected");
+            return;
+        }
+        if (clientAddress === "") {
+            console.error("Client address is required");
+            return;
+        }
+
+        console.log("Closing vault...");
+        console.log("Mint Address:", mintAddress);
+        console.log("Client Address:", clientAddress);
+        console.log("Wallet (Merchant) Address:", wallet.publicKey.toString());
+
+        try {
+            const provider = new AnchorProvider(connection, wallet, {
+                commitment: 'confirmed'
+            });
+            const program = new Program(idl as any, provider);
+
+            const merchantPubKey = wallet.publicKey;
+            const clientPubkey = new PublicKey(clientAddress.trim());
+            const mintPubKey = new PublicKey(mintAddress.trim());
+
+            // Generate PDAs
+            const [vaultInfoPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault_info"),
+                merchantPubKey.toBuffer(),
+                clientPubkey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID);
+
+            const [vaultTokenPDA] = await PublicKey.findProgramAddressSync([
+                Buffer.from("vault"),
+                merchantPubKey.toBuffer(),
+                clientPubkey.toBuffer(),
+                mintPubKey.toBuffer()
+            ], PROGRAM_ID);
+
+            console.log("Vault Info PDA:", vaultInfoPDA.toString());
+            console.log("Vault Token PDA:", vaultTokenPDA.toString());
+
+            // Check if accounts exist before trying to close
+            try {
+                const vaultInfoAccount = await program.account.vaultInfo.fetch(vaultInfoPDA);
+                console.log("Vault Info Account found:", vaultInfoAccount);
+                console.log("Stored amount:", vaultInfoAccount.amount.toString());
+                console.log("Stored merchant:", vaultInfoAccount.merchant.toString());
+                console.log("Stored target:", vaultInfoAccount.targetAcc.toString());
+            } catch (error) {
+                console.error("Vault Info Account not found:", error);
+                throw error;
+            }
+
+            try {
+                const vaultTokenAccount = await connection.getAccountInfo(vaultTokenPDA);
+                if (!vaultTokenAccount) {
+                    console.error("Vault Token Account not found at PDA:", vaultTokenPDA.toString());
+                    return;
+                }
+                console.log("Vault Token Account found");
+
+                // Get token account info
+                const tokenAccountInfo = await connection.getTokenAccountBalance(vaultTokenPDA);
+                console.log("Token account balance:", tokenAccountInfo.value.amount);
+
+                if (tokenAccountInfo.value.amount !== "0") {
+                    console.error("Vault is not empty. Balance:", tokenAccountInfo.value.amount);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking vault token account:", error);
+                return;
+            }
+
+            // if both accounts exist and vault is empty
+            console.log("All checks passed. Attempting to close vault...");
+
+            const tx = await program.methods.closevault()
+                .accounts({
+                    vaultInfo: vaultInfoPDA,
+                    vaultTokenAcc: vaultTokenPDA,
+                    targetAcc: clientPubkey,
+                    signer: merchantPubKey,
+                    mint: mintPubKey,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId
+                })
+                .rpc();
+
+            console.log("Vault closed successfully", tx);
+            return tx;
+        } catch (error) {
+            console.error("Error closing vault:", error);
+            throw error;
+        }
     }
+
+    const { mutateAsync: close, data, isPending, isSuccess, isError } = useMutation({
+        mutationFn: closeVault,
+        onSuccess: (data: any) => {
+            // 'data' contains what you returned from InitializeVault function
+            toast.success("Vault closed Successfully!", {
+                description: `Transaction: ${data}`,
+                // Or use a Solana explorer link:
+                action: {
+                    label: "View on Explorer",
+                    onClick: () => window.open(`https://explorer.solana.com/tx/${data}?cluster=devnet`, '_blank')
+                }
+            });
+        },
+        onError: (error) => {
+            console.error("Close Vault failed:", error.message);
+            toast.error(`Close Vault failed. Please try again.: ${error.message}`);
+        }
+    });
+
+    return { close, data, isPending, isSuccess, isError, wallet, connection };
+
 }
