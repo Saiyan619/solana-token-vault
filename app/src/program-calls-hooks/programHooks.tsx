@@ -7,8 +7,8 @@ import idl from '@/solana_escrow_vault.json';
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
-const PLATFORM = new PublicKey("65rSM9vVip4U8TS4gZD2ovzWqrMr95kbdBg5Niv6GCWq");
+const PROGRAM_ID = new PublicKey(import.meta.env.VITE_PROGRAM_ID);
+const PLATFORM = new PublicKey(import.meta.env.VITE_PLATFORM_ADDRESS);
 
 /////////////////////////// Hook for Creating the Vault //////////////////////////////////
 

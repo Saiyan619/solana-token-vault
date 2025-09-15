@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 
-const PROGRAM_ID = new PublicKey("G331TXB6zv8bj2y9jnHpmdbokfKJgBZshb21ZNbdmCGt");
+const PROGRAM_ID = new PublicKey(import.meta.env.VITE_PROGRAM_ID);
 
 
 const VaultDetails = () => {

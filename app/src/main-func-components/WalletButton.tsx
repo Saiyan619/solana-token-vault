@@ -1,22 +1,22 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
-import '@solana/wallet-adapter-react-ui/styles.css'; 
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 const WalletButton = () => {
-        const { publicKey, connected, wallet } = useWallet();
+    const { publicKey, connected, wallet } = useWallet();
 
-  return (
-    <div>
-       <div className="gap-2 flex flex-wrap items-center">
-       
-              <div><WalletMultiButton className="w-full" /></div>
-              <div> {connected && <WalletDisconnectButton className="w-full" />}</div>
-              
-                </div>
+    return (
+        <div>
+            <div className="gap-2 flex flex-wrap items-center">
 
-                {/* imposter */}
-                {/* Connection Status */}
-                {/* <div className="mb-6">
+                <div><WalletMultiButton className="w-full" /></div>
+                <div> {connected && <WalletDisconnectButton className="w-full" />}</div>
+
+            </div>
+
+            {/* imposter */}
+            {/* Connection Status */}
+            {/* <div className="mb-6">
                     <p className="mb-2">
                         <strong>Status:</strong> {connected ? 'Connected' : 'Disconnected'}
                     </p>
@@ -36,8 +36,8 @@ const WalletButton = () => {
                         </div>
                     )}
                 </div> */}
-    </div>
-  )
+        </div>
+    )
 }
 
 export default WalletButton
