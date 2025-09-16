@@ -14,28 +14,6 @@ const WalletButton = () => {
 
             </div>
 
-            {/* imposter */}
-            {/* Connection Status */}
-            {/* <div className="mb-6">
-                    <p className="mb-2">
-                        <strong>Status:</strong> {connected ? 'Connected' : 'Disconnected'}
-                    </p>
-                    
-                    {wallet && (
-                        <p className="mb-2">
-                            <strong>Wallet:</strong> {wallet.adapter.name}
-                        </p>
-                    )}
-                    
-                    {publicKey && (
-                        <div className="mb-2">
-                            <strong>Address:</strong>
-                            <p className="text-sm font-mono bg-gray-700 p-2 rounded mt-1 break-all">
-                                {publicKey.toString()}
-                            </p>
-                        </div>
-                    )}
-                </div> */}
         </div>
     )
 }
